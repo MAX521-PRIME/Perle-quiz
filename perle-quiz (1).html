@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perle Web3 Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#020c18;--surface:#071020;--surface2:#0b1828;
+  --sky:#38bdf8;--sky2:#7dd3fc;--green:#22c55e;
+  --amber:#f59e0b;--red:#f43f5e;--text:#e2e8f0;
+  --muted:#4e6a8a;--border:rgba(56,189,248,0.15);--borderg:rgba(56,189,248,0.3);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  padding:0 16px 60px;overflow-x:hidden;}
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(56,189,248,0.03) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(56,189,248,0.03) 1px,transparent 1px);
+  background-size:52px 52px;}
+.bg-orb{position:fixed;z-index:0;pointer-events:none;border-radius:50%;filter:blur(80px);animation:breathe 7s ease-in-out infinite;}
+.bg-orb.o1{width:520px;height:520px;top:-160px;left:50%;transform:translateX(-50%);background:radial-gradient(circle,rgba(56,189,248,0.09),transparent 70%);}
+.bg-orb.o2{width:300px;height:300px;bottom:80px;right:-80px;background:radial-gradient(circle,rgba(34,197,94,0.06),transparent 70%);animation-delay:-3.5s;}
+@keyframes breathe{0%,100%{opacity:.7;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.1)}}
+
+.music-btn{position:fixed;top:18px;right:18px;z-index:50;width:40px;height:40px;
+  border-radius:10px;background:var(--surface);border:1px solid var(--border);
+  color:var(--sky);cursor:pointer;font-size:17px;display:flex;align-items:center;
+  justify-content:center;transition:all .2s;}
+.music-btn:hover{border-color:var(--sky);box-shadow:0 0 16px rgba(56,189,248,0.3);}
+
+/* HEADER */
+.header{position:relative;z-index:2;display:flex;align-items:center;gap:14px;
+  padding:28px 0 20px;animation:slideDown .6s ease both;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:translateY(0)}}
+.logo-wrap{width:58px;height:58px;border-radius:16px;border:1px solid var(--borderg);
+  background:radial-gradient(circle at 40% 40%,rgba(56,189,248,0.15),transparent 70%),var(--surface);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;
+  box-shadow:0 0 28px rgba(56,189,248,0.22),inset 0 1px 0 rgba(255,255,255,0.05);}
+.logo-wrap img{width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(56,189,248,0.5));}
+.logo-fallback{font-size:26px;}
+.header-text h1{font-family:'Syne',sans-serif;font-size:clamp(1.4rem,5vw,2.1rem);font-weight:900;
+  letter-spacing:-1.5px;background:linear-gradient(135deg,#fff 20%,var(--sky) 60%,var(--sky2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.header-text .tagline{font-size:.58rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:5px;}
+
+/* STATS */
+.stat-bar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;justify-content:center;
+  z-index:1;position:relative;animation:slideDown .7s .1s ease both;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:10px 16px;display:flex;flex-direction:column;align-items:center;min-width:84px;gap:2px;position:relative;overflow:hidden;}
+.stat::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(56,189,248,0.04),transparent);pointer-events:none;}
+.stat-label{font-size:.57rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+.stat-value{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:var(--sky);transition:all .3s;}
+.stat-value.green{color:var(--green);}
+.stat-value.amber{color:var(--amber);}
+.mult-badge{font-size:.54rem;font-weight:700;padding:1px 7px;border-radius:20px;
+  background:var(--amber);color:#000;letter-spacing:1px;opacity:0;transition:opacity .3s;pointer-events:none;}
+.mult-badge.show{opacity:1;}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:22px;
+  width:100%;max-width:660px;padding:26px 28px 22px;
+  box-shadow:0 0 50px rgba(56,189,248,0.08),0 24px 60px rgba(0,0,0,0.5);
+  z-index:1;position:relative;animation:fadeUp .5s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+.prog-row{display:flex;justify-content:space-between;margin-bottom:6px;}
+.prog-label{font-size:.6rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.prog-track{width:100%;height:5px;background:#0f2033;border-radius:99px;margin-bottom:22px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--sky),var(--green));
+  box-shadow:0 0 10px rgba(34,197,94,0.4);transition:width .6s cubic-bezier(.34,1.56,.64,1);width:0%;}
+
+.q-tag{font-size:.6rem;color:var(--sky);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;}
+#question{font-family:'Syne',sans-serif;font-size:clamp(.95rem,2.8vw,1.18rem);
+  font-weight:700;line-height:1.45;margin-bottom:22px;min-height:56px;}
+
+/* ANSWERS */
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.ans-btn{width:100%;padding:13px 12px;border-radius:13px;background:var(--surface2);
+  color:var(--text);border:1px solid var(--border);cursor:pointer;
+  font-family:'Space Mono',monospace;font-size:.75rem;text-align:left;line-height:1.4;
+  transition:all .2s ease;position:relative;overflow:hidden;
+  display:flex;align-items:flex-start;gap:8px;}
+.ans-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(56,189,248,0.07),transparent);opacity:0;transition:opacity .2s;}
+.ans-btn:hover:not(:disabled){border-color:var(--sky);transform:translateY(-2px);box-shadow:0 4px 18px rgba(56,189,248,0.18);color:#fff;}
+.ans-btn:hover:not(:disabled)::after{opacity:1;}
+.letter{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;
+  flex-shrink:0;border-radius:6px;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);
+  font-size:.6rem;color:var(--sky);margin-top:1px;}
+.ans-btn.correct{background:rgba(34,197,94,0.14)!important;border-color:var(--green)!important;color:var(--green)!important;animation:popC .4s ease;}
+.ans-btn.correct .letter{background:rgba(34,197,94,0.2);border-color:var(--green);color:var(--green);}
+.ans-btn.wrong{background:rgba(244,63,94,0.13)!important;border-color:var(--red)!important;color:var(--red)!important;animation:shake .45s ease;}
+.ans-btn.wrong .letter{background:rgba(244,63,94,0.2);border-color:var(--red);color:var(--red);}
+.ans-btn:disabled{cursor:not-allowed;pointer-events:none;}
+@keyframes popC{0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+/* HINT */
+.hint-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.hint-btn{background:transparent;border:1px solid rgba(245,158,11,0.3);color:var(--amber);
+  border-radius:8px;padding:5px 12px;font-family:'Space Mono',monospace;font-size:.63rem;
+  cursor:pointer;transition:all .2s;letter-spacing:1px;}
+.hint-btn:hover{background:rgba(245,158,11,0.08);border-color:var(--amber);}
+.hint-btn:disabled{opacity:.3;cursor:not-allowed;}
+.hint-text{font-size:.68rem;color:var(--amber);font-style:italic;display:none;margin-bottom:12px;line-height:1.5;padding:8px 12px;background:rgba(245,158,11,0.06);border-radius:8px;border-left:2px solid var(--amber);}
+.hint-text.show{display:block;animation:fadeUp .3s ease;}
+
+.divider{height:1px;background:var(--border);margin-bottom:14px;}
+.cash-btn{width:100%;padding:13px;border-radius:13px;background:transparent;color:var(--amber);
+  border:1px solid rgba(245,158,11,0.4);cursor:pointer;font-family:'Space Mono',monospace;
+  font-size:.78rem;font-weight:700;letter-spacing:1.5px;transition:all .2s;}
+.cash-btn:hover{background:rgba(245,158,11,0.08);box-shadow:0 0 20px rgba(245,158,11,0.2);transform:translateY(-1px);}
+
+.queue-info{font-size:.6rem;color:var(--muted);text-align:center;margin-top:10px;z-index:1;letter-spacing:1px;min-height:16px;}
+
+/* TOAST */
+#toast{position:fixed;top:22px;left:50%;z-index:200;
+  transform:translateX(-50%) translateY(-90px);padding:9px 22px;border-radius:99px;
+  font-size:.75rem;font-weight:700;letter-spacing:1px;
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+#toast.ok{background:var(--green);color:#000;}
+#toast.bad{background:var(--red);color:#fff;}
+#toast.info{background:var(--amber);color:#000;}
+
+/* OVERLAY */
+.overlay{display:none;position:fixed;inset:0;background:rgba(2,12,24,0.92);z-index:100;
+  align-items:center;justify-content:center;backdrop-filter:blur(10px);}
+.overlay.show{display:flex;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--surface);border:1px solid var(--borderg);border-radius:26px;
+  padding:42px 36px;max-width:420px;width:90%;text-align:center;
+  box-shadow:0 0 60px rgba(56,189,248,0.18);
+  animation:popIn .45s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-emoji{font-size:3.2rem;margin-bottom:10px;}
+.modal-title{font-family:'Syne',sans-serif;font-size:1.65rem;font-weight:900;margin-bottom:6px;}
+.modal-score{font-family:'Syne',sans-serif;font-size:2.8rem;font-weight:900;color:var(--sky);margin:10px 0;}
+.modal-rank{font-size:.72rem;color:var(--muted);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase;}
+.modal-detail{font-size:.7rem;color:var(--muted);margin-bottom:24px;}
+.modal-btn{padding:12px 30px;border-radius:12px;background:linear-gradient(135deg,var(--sky),#60a5fa);
+  color:#000;border:none;cursor:pointer;font-family:'Space Mono',monospace;
+  font-size:.82rem;font-weight:700;letter-spacing:1px;transition:all .2s;}
+.modal-btn:hover{box-shadow:0 0 24px rgba(56,189,248,0.45);transform:translateY(-2px);}
+
+@media(max-width:480px){.answers{grid-template-columns:1fr}.card{padding:18px 14px}}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-orb o1"></div>
+<div class="bg-orb o2"></div>
+
+<button class="music-btn" id="musicBtn" title="Toggle ambient music">🔇</button>
+
+<!-- HEADER WITH LOGO -->
+<div class="header">
+  <div class="logo-wrap" id="logoWrap">
+    <img src="1774156531127_image.png" alt="Perle" id="logoImg">
+  </div>
+  <div class="header-text">
+    <h1>PERLE QUIZ</h1>
+    <div class="tagline">Sovereign AI Data Layer — Knowledge Challenge</div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stat-bar">
+  <div class="stat">
+    <span class="stat-label">Score</span>
+    <span class="stat-value" id="score">0</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Streak 🔥</span>
+    <span class="stat-value green" id="streak">0</span>
+    <span class="mult-badge" id="badge">×1</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Correct</span>
+    <span class="stat-value amber" id="correct">0</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Remaining</span>
+    <span class="stat-value" id="remaining">50</span>
+  </div>
+</div>
+
+<!-- QUIZ CARD -->
+<div class="card">
+  <div class="prog-row">
+    <span class="prog-label">Progress</span>
+    <span class="prog-label" id="pct">0%</span>
+  </div>
+  <div class="prog-track"><div class="prog-fill" id="progress"></div></div>
+
+  <div class="q-tag">// Question</div>
+  <h2 id="question">Loading...</h2>
+
+  <div class="answers" id="answers"></div>
+
+  <div class="hint-row">
+    <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 HINT (−5 pts)</button>
+  </div>
+  <div class="hint-text" id="hintText"></div>
+
+  <div class="divider"></div>
+  <button class="cash-btn" onclick="cashOut()">💸 CASH OUT — Lock In My Score</button>
+</div>
+<div class="queue-info" id="queueInfo"></div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-emoji" id="mEmoji">🏆</div>
+    <div class="modal-title" id="mTitle">Well Played!</div>
+    <div class="modal-score" id="mScore">0 PTS</div>
+    <div class="modal-rank" id="mRank">Perle Contributor</div>
+    <div class="modal-detail" id="mDetail"></div>
+    <button class="modal-btn" onclick="restart()">↻ Play Again</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── QUESTION BANK ──
+// opts[0] is ALWAYS the correct answer. We shuffle at runtime.
+const BANK = [
+  // CORE CONCEPT
+  {q:"What is Perle Labs primarily designed as?",opts:["A sovereign intelligence data layer for AI","A decentralized gaming platform","A social media protocol","An NFT marketplace"],hint:"Think 'trusted AI training data' and verifiable data supply chains."},
+  {q:"What THREE pillars does Perle Labs combine?",opts:["Expert contributions, on-chain audit trails, and reputation incentives","Speed, price, and availability","Gaming, NFTs, and DeFi","Social, content, and rewards"],hint:"Perle's litepaper opens by describing three specific pillars — quality over speed."},
+  {q:"Why is data integrity critical in the AI era according to Perle?",opts:["AI is moving into high-stakes decisions in healthcare and defense","Blockchain storage is getting cheap","Gaming demands it","Social media requires verification"],hint:"The litepaper mentions healthcare, robotics, transportation, and defense."},
+  {q:"What specific AI supply chain risk does Perle Labs address?",opts:["Data poisoning and model degradation","Slow transaction speed","High network gas fees","User interface complexity"],hint:"When bad data enters training pipelines, models can degrade."},
+  {q:"What is the long-term vision of Perle Labs?",opts:["Turn verified human expertise into a programmable on-chain asset","Build the fastest blockchain","Replace social media platforms","Create a gaming economy"],hint:"Experts build portable, verifiable reputation inside AI supply chains."},
+
+  // TOKENOMICS
+  {q:"What is the native token ticker of the Perle Labs protocol?",opts:["PRL","PERL","PRLE","PLR"],hint:"A 3-letter abbreviation derived from Perle."},
+  {q:"What is the TOTAL supply of PRL tokens?",opts:["1,000,000,000 (1 Billion)","500,000,000","10,000,000,000","100,000,000"],hint:"One billion — common for Web3 protocols."},
+  {q:"What percentage of PRL is allocated to the Community?",opts:["37.50%","17.00%","27.66%","17.84%"],hint:"The single largest allocation — community ownership is prioritized."},
+  {q:"What percentage of PRL is allocated to Investors?",opts:["27.66%","37.50%","17.00%","17.84%"],hint:"Roughly more than a quarter of supply rewards early backers."},
+  {q:"What percentage of PRL is allocated to the Team?",opts:["17.00%","27.66%","37.50%","17.84%"],hint:"Teams typically receive 15–20% in Web3 protocols."},
+  {q:"What is the Ecosystem allocation of PRL?",opts:["17.84%","37.50%","27.66%","17.00%"],hint:"Slightly more than the team — supports partnerships and protocol growth."},
+  {q:"What is the circulating supply of PRL on Day 1 (TGE)?",opts:["17.5%","0%","50%","100%"],hint:"A minority releases at launch; most tokens vest over time."},
+  {q:"When does the Team allocation first unlock?",opts:["12-month cliff, then 25% releases","At TGE immediately","After 6 months","After 24 months"],hint:"There is a cliff period — no team tokens before then."},
+  {q:"What is the FULL vesting period for Team tokens?",opts:["48 months from TGE","12 months","24 months","36 months"],hint:"Four years is standard for aligned long-term vesting."},
+  {q:"How much Ecosystem allocation is released immediately at TGE?",opts:["10% of total supply","0%","50%","All 17.84%"],hint:"A portion unlocks immediately for liquidity and partnerships."},
+  {q:"What is the Community allocation primarily used for?",opts:["Contributor rewards, campaigns, and incentive programs","Team salaries","Legal compliance fees","Paid marketing only"],hint:"Community tokens go back to the builders and users of the protocol."},
+  {q:"What blockchain does Perle Labs deploy on?",opts:["Solana","Ethereum","Bitcoin","Polygon"],hint:"Known for high-performance, low-cost transactions."},
+  {q:"What is the supply type of PRL?",opts:["Fixed — no further minting planned","Inflationary with staking rewards","Deflationary through token burns","Elastic rebase supply"],hint:"The litepaper explicitly states supply is capped permanently."},
+  {q:"After the 12-month cliff, what percentage of Team tokens unlock?",opts:["25%","100%","50%","10%"],hint:"A quarter unlocks at the cliff, with the remaining 75% vesting linearly."},
+  {q:"What does the Community vesting schedule look like?",opts:["7.5% at TGE, rest vests over 36 months","0% at TGE, all vests over 48 months","50% at TGE, rest over 12 months","100% at TGE"],hint:"A small immediate release, then long-term vesting to reward sustained participation."},
+
+  // ARCHITECTURE
+  {q:"Which Perle layer handles data ingestion, annotation, and validation?",opts:["Data and Task Layer","Settlement and Record Layer","Application and Interface Layer","Coordination and Reputation Layer"],hint:"The first layer — where raw data enters the system."},
+  {q:"What does the Settlement and Record Layer in Perle do?",opts:["Records transactions and reputation updates on-chain","Manages dashboards and user interfaces","Routes tasks to available experts","Handles off-chain payment processing"],hint:"Think tamper-resistant ledger of all work history and economic flows."},
+  {q:"What does the Coordination and Reputation Layer integrate with?",opts:["Smart contracts, off-chain services, and quality algorithms","Only mobile applications","Gaming engines exclusively","Social media APIs"],hint:"This layer handles task routing, reward allocation, and compliance checks."},
+  {q:"What data modalities does Perle's Data Layer support?",opts:["Text, images, video, audio, code, and robotics/sensor streams","Text only","Images and video only","Code and structured data only"],hint:"Perle serves diverse AI use cases — multiple data types."},
+  {q:"What are hidden benchmark tasks used for in Perle Labs?",opts:["Measuring true quality of expert contributions without bias","Pure entertainment for contributors","Slowing down suspicious actors","Rewarding the fastest workers"],hint:"Hidden tasks evaluate experts without them knowing — testing real quality."},
+  {q:"What makes expert reputation 'portable' in Perle?",opts:["It's stored on-chain, allowing it to transfer across campaigns and protocols","It resets at the start of each season","It's stored in a centralized private database","It's locked to a single enterprise client"],hint:"Verifiable on-chain state means reputation travels with the expert."},
+  {q:"What is 'dynamic routing' in Perle Labs?",opts:["Matching tasks to experts by reputation, not speed or cost","Routing internet network traffic","Randomly assigning tasks to available workers","Prioritizing the cheapest available contributor"],hint:"Quality first — the best-suited expert gets the task, not the fastest."},
+  {q:"What is the Application and Interface Layer responsible for?",opts:["Dashboards, SDKs, and client tools that hide protocol complexity","On-chain transaction settlement","Expert reputation calculation","Data ingestion and annotation"],hint:"The top layer faces users and clients — it makes the protocol accessible."},
+
+  // PARTICIPANTS & BUSINESS MODEL
+  {q:"Who are 'Task Requesters' in the Perle Labs network?",opts:["AI labs and enterprises needing high-quality data","Anonymous crowd-source workers","Retail token speculators","Mobile gaming studios"],hint:"They define task requirements and submit them to the marketplace."},
+  {q:"Which professional type is listed as an Expert Contributor on Perle?",opts:["Medical specialists annotating clinical notes","Unverified random internet users","Automated bot accounts","Crypto day traders"],hint:"Perle works with verified professionals in domain-specific fields."},
+  {q:"Beyond immediate payment, what do expert contributors receive?",opts:["Long-term reputation scores and token exposure","Only one-time cash payments","Only NFT certificates","Only governance voting rights"],hint:"Long-term benefits align expert interests with protocol success."},
+  {q:"Which client sector is NOT listed in the Perle Labs litepaper?",opts:["Music streaming platforms","Healthcare AI firms","Frontier AI laboratories","Robotics and autonomous systems companies"],hint:"Perle targets high-stakes, data-critical regulated industries."},
+  {q:"What premium services does Perle Labs offer?",opts:["Safety evaluations, RLHF program design, and custom benchmarks","Gaming tournaments","Music NFT minting","Social media analytics"],hint:"Premium = specialized AI evaluation work beyond basic data labeling."},
+  {q:"What does RLHF stand for in Perle's premium services?",opts:["Reinforcement Learning from Human Feedback","Real-time Ledger for Human Finance","Reputation Layer for High Frequency","Robust Licensing for Hosted Files"],hint:"A core AI alignment technique — training models using human judgments."},
+  {q:"What is the 'expert economy' Perle Labs aims to build?",opts:["Professionals earning income and portable reputation from AI contributions","A low-wage gig economy for content tagging","A marketplace for digital art creation","A decentralized lending protocol"],hint:"Contrast to anonymous low-wage gig work — Perle builds professional careers."},
+
+  // STRATEGIC IMPACT
+  {q:"What does Perle Labs offer to governments and regulators?",opts:["An auditable protocol for transparent and verifiable AI data pipelines","Consumer gaming licenses","Social media content compliance tools","Advertising display standards"],hint:"Policymakers need enforceable technical standards, not just guidelines."},
+  {q:"How does Perle Labs help enterprises reduce risk?",opts:["By sourcing, verifying, and documenting high-quality data with provenance","By offering insurance products for data breaches","By automating legal contract drafting","By providing cheap cloud object storage"],hint:"Opaque data pipelines create compliance and safety risks for enterprises."},
+  {q:"How does Perle differ from traditional data labeling gig work?",opts:["Perle uses verified experts who build portable reputation, unlike anonymous low-wage workers","Perle pays lower rates than traditional platforms","Perle uses more automated labeling tools","Perle does not compensate contributors at all"],hint:"Traditional labeling is anonymous, low-wage, and disposable. Perle builds careers."},
+  {q:"What three groups does Perle's Strategic Impact section address?",opts:["Governments/regulators, enterprises/AI labs, and expert contributors","Investors, traders, and speculators","Gamers, artists, and musicians","Advertisers, brands, and influencers"],hint:"Three beneficiaries: those who regulate AI, those who build AI, those who feed AI."},
+  {q:"What competitive advantage does Perle provide AI enterprises?",opts:["Domain-specific expert-annotated data for reliable and ethical AI products","Lower operating costs through automation","Faster time-to-market for games","Broader social media reach"],hint:"Expert-verified domain data leads to more accurate, reliable AI models."},
+
+  // ROADMAP
+  {q:"What is included in Perle's Phase 1 (Current Phase)?",opts:["On-chain recording, TGE, and opening the contributor platform globally","Launching a gaming metaverse","Acquiring social media companies","Building a decentralized exchange"],hint:"Phase 1 is about foundations — getting contributors on-chain and distributing PRL."},
+  {q:"What major structure is formed in Phase 2 of the roadmap?",opts:["Specialized expert guilds and the Perle AI Labor Marketplace","A consumer mobile game","A music NFT trading platform","A decentralized lending protocol"],hint:"Phase 2 builds communities of domain-specific professional experts."},
+  {q:"What does Phase 3 of Perle's roadmap focus on?",opts:["Enterprise scale, standardization, and deep integrations with frontier AI labs","Retail gaming and entertainment","Social media features and influencer tools","Consumer applications and mass market adoption"],hint:"Phase 3 is institutional-grade — think healthcare, robotics, government."},
+  {q:"What is Perle Labs' ultimate stated goal?",opts:["Become the default choice for verifiable, high-integrity AI data","Become the largest gaming platform by users","Reach 1 billion social media followers","Dominate the global NFT market"],hint:"The goal is to be THE trusted default for serious AI — not just a niche tool."},
+
+  // TOKEN UTILITY
+  {q:"What role does the PRL token play in the ecosystem?",opts:["Coordination and incentive asset — access, priority, and future development","A pure governance token with no other use","Only a speculative trading asset","A stablecoin for payments"],hint:"PRL aligns everyone's interests — experts, clients, and the protocol."},
+  {q:"What does 'data provenance' mean in the context of Perle Labs?",opts:["Knowing the full origin and handling history of data in AI pipelines","Fast encrypted data transfer","Compressed data storage format","Anonymized data for privacy"],hint:"Provenance = where did this data come from, who touched it, and when."},
+  {q:"What is a 'multi-dimensional reputation score' in Perle?",opts:["A score capturing accuracy, consistency, domain specialization, and reliability","A single number based on task completion speed","A score based purely on task volume","A social media follower count"],hint:"Perle measures multiple quality dimensions — not just how much work was done."},
+  {q:"What makes Perle's approach to AI data 'sovereign'?",opts:["Data has verified human attribution, full audit trails, and is on-chain auditable","Data is stored only on private servers","Data is encrypted and inaccessible to anyone","Data is generated purely by AI models"],hint:"Sovereignty means full traceability — no mystery data, no opaque pipelines."},
+];
+
+// ── GAME STATE ──
+const LETTERS = ['A','B','C','D'];
+let mainQueue = [];
+let missedQueue = [];
+let currentQ = null;
+let score = 0, streak = 0, correctCount = 0, questionNum = 0;
+let answered = false, hintUsed = false;
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+  return arr;
+}
+
+function buildQueue(){
+  mainQueue = shuffle([...Array(BANK.length).keys()]);
+  missedQueue = [];
+}
+
+function nextBankIdx(){
+  // Sprinkle missed questions back in
+  if(missedQueue.length > 0 && mainQueue.length > 0 && Math.random() < 0.35){
+    return missedQueue.shift();
+  }
+  if(mainQueue.length > 0) return mainQueue.shift();
+  if(missedQueue.length > 0) return missedQueue.shift();
+  return null;
+}
+
+function prepareQ(bankIdx){
+  const raw = BANK[bankIdx];
+  const opts = raw.opts.map((text,i)=>({text,correct:i===0}));
+  shuffle(opts);
+  return { bankIdx, q:raw.q, opts, correctIdx:opts.findIndex(o=>o.correct), hint:raw.hint };
+}
+
+function loadQ(){
+  answered = false; hintUsed = false;
+  document.getElementById("hintText").classList.remove("show");
+  document.getElementById("hintText").textContent = "";
+  document.getElementById("hintBtn").disabled = false;
+
+  const idx = nextBankIdx();
+  if(idx === null){ showModal(true); return; }
+
+  currentQ = prepareQ(idx);
+  questionNum++;
+
+  document.getElementById("question").textContent = currentQ.q;
+  const container = document.getElementById("answers");
+  container.innerHTML = "";
+
+  currentQ.opts.forEach((opt,i)=>{
+    const btn = document.createElement("button");
+    btn.className = "ans-btn";
+    btn.innerHTML = `<span class="letter">${LETTERS[i]}</span><span>${opt.text}</span>`;
+    btn.onclick = ()=>check(i,btn);
+    container.appendChild(btn);
+  });
+
+  updateProgress();
+  updateRemaining();
+}
+
+function check(sel, btn){
+  if(answered) return;
+  answered = true;
+
+  const allBtns = document.querySelectorAll(".ans-btn");
+  allBtns.forEach(b=>b.disabled=true);
+  allBtns[currentQ.correctIdx].classList.add("correct");
+
+  if(currentQ.opts[sel].correct){
+    correctCount++;
+    streak++;
+    const mult = streak>=5?3:streak>=3?2:1;
+    const pts = (10-(hintUsed?5:0))*mult;
+    score += pts;
+    tone(660,.15,'sine'); setTimeout(()=>tone(880,.12,'sine'),130);
+    showToast(`✓ CORRECT  +${pts} pts`,"ok");
+    updateUI();
+    setTimeout(loadQ, 900);
+  } else {
+    btn.classList.add("wrong");
+    streak = 0;
+    // Re-queue this question to appear again later
+    missedQueue.push(currentQ.bankIdx);
+    tone(180,.2,'sawtooth');
+    showToast("✗ WRONG — returns later!","bad");
+    updateUI();
+    setTimeout(loadQ, 1200);
+  }
+}
+
+function showHint(){
+  if(hintUsed||answered) return;
+  hintUsed = true;
+  document.getElementById("hintBtn").disabled = true;
+  document.getElementById("hintText").textContent = "💡 "+currentQ.hint;
+  document.getElementById("hintText").classList.add("show");
+  showToast("Hint unlocked — −5 pts on correct","info");
+  tone(440,.08,'sine');
+}
+
+function updateUI(){
+  document.getElementById("score").textContent = score;
+  document.getElementById("streak").textContent = streak;
+  document.getElementById("correct").textContent = correctCount;
+  const badge = document.getElementById("badge");
+  if(streak>=5){badge.textContent="×3 BONUS!";badge.classList.add("show");}
+  else if(streak>=3){badge.textContent="×2 BONUS";badge.classList.add("show");}
+  else{badge.classList.remove("show");}
+}
+
+function updateProgress(){
+  const pct = Math.round((correctCount/BANK.length)*100);
+  document.getElementById("progress").style.width = pct+"%";
+  document.getElementById("pct").textContent = pct+"%";
+}
+
+function updateRemaining(){
+  const r = mainQueue.length + missedQueue.length;
+  document.getElementById("remaining").textContent = r;
+  document.getElementById("queueInfo").textContent =
+    missedQueue.length>0 ? `🔄 ${missedQueue.length} question(s) will return after wrong answers` : "";
+}
+
+function cashOut(){ showModal(false); }
+
+function showModal(completed){
+  const tiers=[
+    [40,"🏆","Perle Master","Extraordinary protocol knowledge!"],
+    [30,"🥇","Perle Expert","Deep understanding of the ecosystem"],
+    [20,"🥈","Perle Analyst","Solid grasp of Perle's vision"],
+    [10,"🥉","Perle Learner","Good start — dive deeper into the litepaper!"],
+    [0, "🔷","Perle Newcomer","Read the litepaper and try again!"],
+  ];
+  const [,emoji,rank,detail]=tiers.find(([t])=>correctCount>=t);
+  document.getElementById("mEmoji").textContent=completed?"🏆":"💸";
+  document.getElementById("mTitle").textContent=completed?"Quiz Complete!":"Cashed Out!";
+  document.getElementById("mScore").textContent=score+" PTS";
+  document.getElementById("mRank").textContent=rank+" — "+emoji;
+  document.getElementById("mDetail").textContent=correctCount+" correct answers · "+detail;
+  document.getElementById("overlay").classList.add("show");
+  tone(523,.15,'sine'); setTimeout(()=>tone(659,.12,'sine'),160); setTimeout(()=>tone(784,.1,'sine'),320);
+}
+
+function restart(){
+  document.getElementById("overlay").classList.remove("show");
+  score=0;streak=0;correctCount=0;questionNum=0;
+  updateUI();
+  buildQueue();
+  loadQ();
+}
+
+// ── TOAST ──
+let tt;
+function showToast(msg,cls){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.className=`toast ${cls} show`;
+  clearTimeout(tt); tt=setTimeout(()=>{t.className="toast";},2200);
+}
+
+// ── WEB AUDIO ──
+let audioCtx=null, musicOn=false, ambNodes=[];
+
+function getCtx(){
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function tone(freq,vol,type){
+  try{
+    const ctx=getCtx();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type=type||'sine'; o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.55);
+    o.start(); o.stop(ctx.currentTime+0.55);
+  }catch(e){}
+}
+
+function startMusic(){
+  try{
+    const ctx=getCtx();
+    if(ctx.state==='suspended') ctx.resume();
+    // Ambient drone: A2, E3, A3, C#4 — ethereal minor chord
+    [[110,0],[164.81,1],[220,0],[277.18,2]].forEach(([freq,t],i)=>{
+      const osc=ctx.createOscillator(), gain=ctx.createGain(), pan=ctx.createStereoPanner();
+      const lfo=ctx.createOscillator(), lfoG=ctx.createGain();
+      osc.type=i%2===0?'sine':'triangle';
+      osc.frequency.value=freq;
+      gain.gain.value=0.016+(i*0.004);
+      pan.pan.value=(i-1.5)*0.35;
+      lfo.frequency.value=0.1+i*0.04; lfoG.gain.value=0.005;
+      lfo.connect(lfoG); lfoG.connect(gain.gain);
+      osc.connect(gain); gain.connect(pan); pan.connect(ctx.destination);
+      osc.start(); lfo.start();
+      ambNodes.push({osc,lfo});
+    });
+    document.getElementById("musicBtn").textContent="🔊";
+    musicOn=true;
+  }catch(e){}
+}
+
+function stopMusic(){
+  ambNodes.forEach(n=>{try{n.osc.stop();n.lfo.stop();}catch(e){}});
+  ambNodes=[];
+  document.getElementById("musicBtn").textContent="🔇";
+  musicOn=false;
+}
+
+document.getElementById("musicBtn").onclick=()=>{ if(musicOn) stopMusic(); else startMusic(); };
+
+// Logo fallback
+document.getElementById("logoImg").onerror=function(){
+  document.getElementById("logoWrap").innerHTML='<span class="logo-fallback">🔮</span>';
+};
+
+// ── INIT ──
+buildQueue();
+loadQ();
+</script>
+</body>
+</html>
